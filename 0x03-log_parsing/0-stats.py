@@ -1,42 +1,51 @@
 #!/usr/bin/python3
 """
-This module contains the function that displays the
-stats from the standard input
+This module reads from standard input and computes metrics
 """
-import re
 import sys
-status_codes = {200: 0, 301: 0, 400: 0, 401: 0,
-                403: 0, 404: 0, 405: 0, 500: 0}
-print_counter = 0
-size_summation = 0
 
+status_codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
+size_summation = 0
+line_count = 0
 
 def print_logs():
     """
-    Prints status codes to the logs
+    Prints the computed metrics.
     """
     print("File size: {}".format(size_summation))
-    for k, v in sorted(status_codes.items()):
-        if v != 0:
-            print("{}: {}".format(k, v))
-
+    for code in sorted(status_codes.keys()):
+        if status_codes[code] > 0:
+            print("{}: {}".format(code, status_codes[code]))
 
 if __name__ == "__main__":
     try:
         for line in sys.stdin:
-            std_line = line.replace("\n", "")
-            log_list = re.split('- | "|" | " " ', str(std_line))
+            parts = line.strip().split()
+            # Ensure the line has the correct format
+            if len(parts) < 7:
+                continue
+            
             try:
-                codes = log_list[-1].split(" ")
-                if int(codes[0]) not in status_codes.keys():
-                    continue
-                status_codes[int(codes[0])] += 1
-                print_counter += 1
-                size_summation += int(codes[1])
-                if print_counter % 10 == 0:
+                # Extract the file size and status code
+                file_size = int(parts[-1])
+                status_code = int(parts[-2])
+
+                # Update size and count if valid status code
+                size_summation += file_size
+                if status_code in status_codes:
+                    status_codes[status_code] += 1
+
+                line_count += 1
+
+                # Print every 10 lines
+                if line_count % 10 == 0:
                     print_logs()
-            except():
-                pass
+
+            except (ValueError, IndexError):
+                continue
+
         print_logs()
+
     except KeyboardInterrupt:
         print_logs()
+        raise
