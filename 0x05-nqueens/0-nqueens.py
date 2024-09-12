@@ -1,57 +1,70 @@
 #!/usr/bin/python3
+"""N QUEENS ALGORITHM WITH BACKTRACKING (RECURSION INSIDE LOOP)"""
 import sys
 
-def is_safe(board, row, col, n):
-    """Check if it's safe to place a queen at board[row][col]"""
-    for i in range(col):
-        if board[row][i] == 1:
-            return False
-    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
-        if board[i][j] == 1:
-            return False
-    for i, j in zip(range(row, n, 1), range(col, -1, -1)):
-        if board[i][j] == 1:
-            return False
-    return True
+class NQueen:
+    """ Class for solving N Queen Problem """
 
-def solve_nqueens(board, col, n):
-    """Solve the N Queens problem using backtracking"""
-    if col >= n:
-        solution = []
-        for i in range(n):
-            for j in range(n):
-                if board[i][j] == 1:
-                    solution.append([i, j])
+    def __init__(self, n):
+        """ Initialize global variables """
+        self.n = n
+        self.x = [0 for _ in range(n + 1)]
+        self.res = []
+        print(f"Initialized NQueen with n = {self.n}")  # Debugging line
+
+    def place(self, k, i):
+        """ Check if the k-th queen can be placed in the i-th column """
+        for j in range(1, k):
+            if self.x[j] == i or abs(self.x[j] - i) == abs(j - k):
+                print(f"Cannot place queen {k} at column {i} due to conflict with queen {j}")  # Debugging line
+                return 0
+        print(f"Can place queen {k} at column {i}")  # Debugging line
+        return 1
+
+    def nQueen(self, k):
+        """ Try to place queens on the board """
+        print(f"Trying to place queen {k}")  # Debugging line
+        for i in range(1, self.n + 1):
+            if self.place(k, i):
+                self.x[k] = i
+                print(f"Placed queen {k} at column {i}")  # Debugging line
+                if k == self.n:
+                    solution = []
+                    for i in range(1, self.n + 1):
+                        solution.append([i - 1, self.x[i] - 1])
+                    self.res.append(solution)
+                else:
+                    self.nQueen(k + 1)
+        return self.res
+
+# Main
+
+if len(sys.argv) != 2:
+    print("Usage: nqueens N")
+    sys.exit(1)
+
+N = sys.argv[1]
+
+try:
+    N = int(N)
+except ValueError:
+    print("N must be a number")
+    sys.exit(1)
+
+if N < 4:
+    print("N must be at least 4")
+    sys.exit(1)
+
+print(f"Running NQueen with N = {N}")  # Debugging line
+queen = NQueen(N)
+res = queen.nQueen(1)
+
+# Print the number of solutions found
+print(f"Number of solutions found: {len(res)}")
+
+# Print all solutions
+if res:
+    for solution in res:
         print(solution)
-        return True
-
-    res = False
-    for i in range(n):
-        if is_safe(board, i, col, n):
-            board[i][col] = 1
-            res = solve_nqueens(board, col + 1, n) or res
-            board[i][col] = 0
-
-    return res
-
-def nqueens(n):
-    """Initialize the board and solve the problem"""
-    board = [[0 for _ in range(n)] for _ in range(n)]
-    solve_nqueens(board, 0, n)
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: nqueens N")
-        sys.exit(1)
-
-    try:
-        n = int(sys.argv[1])
-    except ValueError:
-        print("N must be a number")
-        sys.exit(1)
-
-    if n < 4:
-        print("N must be at least 4")
-        sys.exit(1)
-
-    nqueens(n)
+else:
+    print("No solutions found.")
